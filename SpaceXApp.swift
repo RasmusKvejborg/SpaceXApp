@@ -14,10 +14,7 @@ struct SpaceXApp: App {
     
     var body: some Scene {
         WindowGroup {
-//            NavigationStack{
-//                LaunchListView().environmentObject(stateController).navigationTitle("Launches")
-//                
-//            }
+
             
             
             TabView {
@@ -28,9 +25,10 @@ struct SpaceXApp: App {
                     Image(systemName: "house")
                     Text("Launches")
                 }
-                
-                LaunchPadsView().environmentObject(stateController).tabItem { Image(systemName: "map")
-                    Text("Launch sites") }
+                NavigationView {
+                    LaunchPadsView().environmentObject(stateController).tabItem { Image(systemName: "map")
+                        Text("Launch sites") }
+                }
                 
                 SavedLaunchesView().environmentObject(stateController).tabItem { Image(systemName: "star")
                     Text("Saved") }

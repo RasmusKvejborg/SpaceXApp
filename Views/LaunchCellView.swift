@@ -41,7 +41,7 @@ struct PlaceholderView: View {
             .frame(width: 80, height: 80)
     }
 }
-    
+    // laver min egen formatter:
     func formatDate(_ dateString: String) -> String? { // laver en funktion der tager en string som argument og returnerer en optional string
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // De bruger UTC formatet, som jeg konverterer fra

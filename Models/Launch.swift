@@ -3,10 +3,6 @@
 import Foundation
 
 
-//struct LaunchResult: Decodable {
-//    let results: [Launch]
-//}
-
 struct Launch: Decodable, Encodable, Identifiable { // skal være encodable for at lave persistering i DetailsView
     let id: String // UUID().uuidString
     let name: String
@@ -19,10 +15,10 @@ struct Launch: Decodable, Encodable, Identifiable { // skal være encodable for 
 //    let payloads: [String]?
     
 
-    struct Links: Decodable, Encodable { // skal være Encodable pga Launch
+    struct Links: Decodable, Encodable { // skal have Encodable pga Launch
         let patch: Patch
     }
-    struct Patch: Decodable, Encodable { // skal være Encodable pga Links
+    struct Patch: Decodable, Encodable { // skal have Encodable pga Links
         let small: URL? // tager den small version for hurtigere load
     }
     //-----------------------

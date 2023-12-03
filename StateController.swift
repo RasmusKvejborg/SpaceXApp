@@ -4,9 +4,14 @@
 
 import SwiftUI
 
+
 class StateController: ObservableObject {
     @Published var launches: [Launch] = [] // laver en tom liste
-    @Published var savedLaunches: [Launch] = []
+    @Published var savedLaunches: [String] = [] // skal iflg. opgaven ikke gemme objektet men blot ID'et
+    @Published var rocket: Rocket?
+    @Published var launchpad: Launchpad?
+
+
 
     
     init(){
@@ -26,7 +31,7 @@ class StateController: ObservableObject {
             let decoder = JSONDecoder()
             do{ // samme som try
                 var launchResult = try decoder.decode([Launch].self, from: rawData)
-                launchResult.sort { launch1, launch2 in
+                launchResult.sort { launch1, launch2 in // sorterer dato faldende
                     launch1.date_utc > launch2.date_utc
                 }
                 self.launches = launchResult // fylder den tomme liste med det data, som er fundet i URL'en
@@ -36,13 +41,16 @@ class StateController: ObservableObject {
         }
     }
     
+    
+    
+    
     private func fetchSavedLaunches(){ // henter
         if let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-            let fileURL = documentsDirectory.appendingPathComponent("savedLaunches.json")
+            let fileURL = documentsDirectory.appendingPathComponent("savedLaunchIds.json")
             do {
                 let data = try Data(contentsOf: fileURL)
                 let decoder = JSONDecoder()
-                let loadedLaunches = try decoder.decode([Launch].self, from: data)
+                let loadedLaunches = try decoder.decode([String].self, from: data)
                 savedLaunches = loadedLaunches
             } catch {
                 print("Error loading data: \(error)")
@@ -54,32 +62,13 @@ class StateController: ObservableObject {
     }
     
     
-//    private func fetchSavedLaunches() {
-//        guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-//            savedLaunches = []
-//            return
-//        }
-//
-//        let fileURL = documentsDirectory.appendingPathComponent("savedLaunches.json")
-//
-//        do {
-//            let data = try Data(contentsOf: fileURL)
-//            let decoder = JSONDecoder()
-//
-//            if let jsonArray = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
-//                // Handle array scenario
-//                let loadedTodoItems = try decoder.decode([Launch].self, from: data)
-//                savedLaunches = loadedTodoItems
-//            } else {
-//                print("JSON data is not an array of objects.")
-//                savedLaunches = []
-//            }
-//        } catch {
-//            print("Error loading data: \(error)")
-//            savedLaunches = []
-//        }
-//    }
     
+    
+    
+    
+    
+    
+
     private func fetchLaunches(from url: URL) {
         Task(priority: .low){
             guard let rawData = await NetworkService.getData(from: url) else {return}
@@ -95,4 +84,38 @@ class StateController: ObservableObject {
             }
         }
     }
+    
+    func fetchRocket(from rocketId: String){
+        guard let rocketURL = URL(string: "https://api.spacexdata.com/v4/rockets/" + rocketId) else {return} // launch.rocket er ID'et på rocket.
+
+        
+        Task(priority: .low) {
+            guard let rawData = await NetworkService.getData(from: rocketURL) else { return }
+            let decoder = JSONDecoder()
+            do{
+                let result = try decoder.decode(Rocket.self, from: rawData) 
+                self.rocket = result
+            } catch { // fejlhåndtering
+                fatalError("Error decoding JSON: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func fetchLaunchpad(from launchpadId: String){
+        
+        guard let url = URL(string: "https://api.spacexdata.com/v4/launchpads/" + launchpadId) else {return} // caster strengen til URL
+        Task(priority: .low) {
+                    guard let rawData = await NetworkService.getData(from: url) else { return }
+                    let decoder = JSONDecoder()
+                    do{
+                        let result = try decoder.decode(Launchpad.self, from: rawData) //[Launch] hvis flere?
+                        self.launchpad = result
+                    } catch { // fejlhåndtering
+                        fatalError("Error decoding JSON: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    
+    
 }
